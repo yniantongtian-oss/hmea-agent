@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="420" viewBox="0 0 1440 420" role="img" aria-labelledby="title desc">
+  <title id="title">HMEA</title>
+  <desc id="desc">Adaptive update multipliers for tabular Q-learning</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1421"/>
+      <stop offset="1" stop-color="#172737"/>
+    </linearGradient>
+    <clipPath id="plot-area">
+      <rect x="650" y="60" width="720" height="300" rx="16"/>
+    </clipPath>
+  </defs>
+  <rect width="1440" height="420" rx="24" fill="url(#background)"/>
+  <g opacity="0.13" stroke="#C6D0D9" stroke-width="1">
+    <path d="M650 100H1370M650 160H1370M650 220H1370M650 280H1370M650 340H1370"/>
+    <path d="M710 60V360M830 60V360M950 60V360M1070 60V360M1190 60V360M1310 60V360"/>
+  </g>
+  <g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="88" y="185" fill="#F4F7F8" font-size="104" font-weight="700" letter-spacing="8">HMEA</text>
+    <text x="94" y="242" fill="#B9C5CE" font-size="27" font-weight="400">Adaptive update multipliers</text>
+    <text x="94" y="282" fill="#B9C5CE" font-size="27" font-weight="400">for tabular Q-learning</text>
+    <rect x="94" y="316" width="84" height="5" rx="2.5" fill="#C85C47"/>
+    <rect x="186" y="316" width="52" height="5" rx="2.5" fill="#3B7F6B"/>
+  </g>
+  <g clip-path="url(#plot-area)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M650 286 C680 284 696 100 721 112 C746 124 742 310 770 286 C798 262 784 124 816 146 C848 168 824 292 859 273 C894 254 866 166 905 180 C944 194 911 268 954 249 C997 230 960 194 1008 205 C1056 216 1018 238 1070 224 C1122 210 1085 224 1144 216 C1203 208 1170 218 1230 214 C1290 210 1328 212 1370 211" stroke="#C85C47" stroke-width="6"/>
+    <path d="M650 292 C730 286 790 278 850 269 C910 260 972 248 1032 238 C1092 228 1155 220 1218 216 C1281 212 1330 211 1370 211" stroke="#3B7F6B" stroke-width="6"/>
+    <path d="M650 292H1370" stroke="#315B7D" stroke-width="4" opacity="0.9"/>
+  </g>
+  <g fill="#F4F7F8">
+    <circle cx="721" cy="112" r="6"/>
+    <circle cx="954" cy="249" r="5"/>
+    <circle cx="1218" cy="216" r="5"/>
+  </g>
+</svg>

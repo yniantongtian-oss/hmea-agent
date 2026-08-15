@@ -1,0 +1,31 @@
+# Changelog
+
+This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
+[Semantic Versioning](https://semver.org/).
+
+## [0.1.0] - 2026-08-15
+
+### Added
+
+- Vectorized tabular Q-learning with per-seed bias, RMSE, and start-state metrics.
+- Baseline, online, clipped, fixed-lag, and leaky-state modulation policies.
+- A reproducible four-policy comparison and a separate training-dynamics experiment.
+- An installed `hmea-compare` command and `python -m hmea` entry point for no-code comparisons.
+- Structural validation for custom modulators and explicit parameter checks.
+- Current Python package metadata, typed-package marker, coverage settings, and build smoke
+  checks.
+- GitHub Issue Forms, pull request template, Dependabot configuration, security policy, and
+  least-privilege CI.
+
+### Changed
+
+- Reframed the repository as an empirical research prototype.
+- Replaced unsupported publication and proof claims with testable implementation notes and
+  established Q-learning references.
+- Replaced the watermarked bitmap header with a source-controlled SVG banner.
+- Made the package, source, and citation versions consistent.
+
+### Removed
+
+- Broken publication, package-index, CI, and Discussions links.
+- Build products, interpreter caches, test caches, and generated package metadata.

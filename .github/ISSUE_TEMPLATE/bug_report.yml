@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible problem in hmea-agent
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: Search existing issues before filing a new report.
+  - type: input
+    id: version
+    attributes:
+      label: hmea-agent version
+      description: Output from `python -c "import hmea; print(hmea.__version__)"`.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, Python version, and NumPy version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest command or code sample that shows the problem.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback or logs
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I removed secrets and private data from the report.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

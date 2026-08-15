@@ -1,0 +1,193 @@
+<p align="center">
+  <img src="assets/banner.svg" alt="HMEA: adaptive update multipliers for tabular Q-learning" width="900">
+</p>
+
+# hmea-agent
+
+A compact NumPy sandbox for measuring how adaptive update multipliers change tabular
+Q-learning.
+
+![Python](https://img.shields.io/badge/Python-3.10%E2%80%933.14-3776AB?logo=python&logoColor=white)
+[![CI](https://github.com/yniantongtian-oss/hmea-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/yniantongtian-oss/hmea-agent/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3A7D44.svg)](LICENSE)
+![Status](https://img.shields.io/badge/status-research%20prototype-C46A3B)
+
+<p align="center">
+  <img src="assets/bias_comparison.png" alt="Comparison of baseline, immediate, lagged, and homeostatic update modulation" width="900">
+</p>
+
+The included experiment uses the same environment, seed streams, and training schedule for
+four update rules. In this controlled case, a multiplier computed from the current TD error
+pushes value estimates upward, while delayed signals stay close to the unmodified baseline.
+The figure is an empirical result for this configuration, not a general convergence claim.
+
+## Why use it
+
+HMEA is intended for reinforcement-learning students, researchers, and engineers who want a
+small experiment they can inspect end to end. It helps users:
+
+- compare update policies under the same environment, seeds, and training schedule;
+- detect feedback-driven estimation bias instead of relying only on average reward;
+- inspect per-seed bias, RMSE, start-state values, and final Q-tables;
+- test a custom multiplier through a small protocol with explicit structural checks;
+- reproduce a reference result on a CPU without a framework or accelerator.
+
+## Run it without writing code
+
+Clone the repository, install the package, and run the short comparison:
+
+```bash
+git clone https://github.com/yniantongtian-oss/hmea-agent.git
+cd hmea-agent
+python -m pip install -e .
+python -m hmea
+```
+
+Installing the package also adds the equivalent `hmea-compare` command. The default run uses
+5,000 steps and 16 seeded replicas, then prints bias, RMSE, confidence intervals, and whether
+each policy reads the current TD error.
+
+Useful variants:
+
+```bash
+# Run one policy with a larger sample.
+python -m hmea --policy fixed-lag --steps 20000 --seeds 64
+
+# Print JSON for a notebook, script, or CI job.
+python -m hmea --policy baseline --json
+
+# Run the deterministic reference configuration.
+python -m hmea --full
+```
+
+The command does not require Matplotlib and does not write files. Its results describe the
+included chain environment only.
+
+## What is included
+
+- A vectorized two-action `ChainMDP` with deterministic dynamics and optional reward noise.
+- Batched tabular Q-learning with separate action-selection streams for each seed.
+- Baseline, immediate, clipped, fixed-lag, and leaky-state modulation policies.
+- Per-seed bias, RMSE, and start-state value logs.
+- Reproducible comparison scripts, a throughput benchmark, tests, packaging checks, and
+  GitHub contribution templates.
+
+The project name is retained from the original prototype. Here, *homeostatic* refers only to
+a scalar leaky controller that tracks TD-error deviation from a setpoint. It does not model
+emotion or consciousness.
+
+## Install for Python use
+
+From the repository root:
+
+```bash
+python -m pip install -e ".[plot]"
+```
+
+The `plot` extra is needed only for the scripts that write PNG figures. The installed command
+and Python API require NumPy only.
+
+For tests and contributor tools:
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+## Quick example
+
+```python
+from hmea import ChainMDP, HomeostaticModulation, QAgent, audit
+
+env = ChainMDP(n_states=8, gamma=0.99, sigma_r=0.1)
+modulator = HomeostaticModulation(eta=0.05, bounds=(0.5, 1.5))
+agent = QAgent(env, modulator, seed=7)
+
+log = agent.train(n_steps=20_000, n_seeds=64, log_every=500)
+
+print(audit(modulator))
+print(f"final mean bias: {log['bias'][-1]:+.4f}")
+print(f"final mean RMSE: {log['rmse'][-1]:.4f}")
+```
+
+`audit()` reports declared structure such as bounds, lag, and whether a policy reads the
+current TD error. It is an interface check; it does not certify learning behavior.
+
+## Reproduce the comparison
+
+```bash
+python experiments/reproduce_bias_comparison.py
+```
+
+The default run trains 128 seeded replicas per policy for 80,000 steps and rewrites
+`assets/bias_comparison.png`. A short smoke run is also available:
+
+```bash
+python experiments/reproduce_bias_comparison.py --quick
+```
+
+The default configuration includes deterministic regression thresholds. Custom or quick
+runs check only that outputs are finite and correctly shaped.
+
+To generate the secondary training-dynamics figure:
+
+```bash
+python experiments/training_dynamics.py
+```
+
+## Core API
+
+| Object | Purpose |
+|---|---|
+| `ChainMDP` | Small left/right environment with an exact expected `Q*` baseline |
+| `QAgent` | Vectorized tabular Q-learning across seeded replicas |
+| `NoModulation` | Standard Q-learning update (`m = 1`) |
+| `OnlineModulation` | Multiplier computed from the current TD error |
+| `ClippedModulation` | Online multiplier restricted to a narrow interval |
+| `LaggedModulation` | Multiplier computed from a fixed-delay TD error |
+| `HomeostaticModulation` | Multiplier computed from the previous leaky-state value |
+| `audit` | Structural report for a modulator declaration |
+
+See [docs/method.md](docs/method.md) for equations, metrics, and interpretation limits.
+
+## Benchmark
+
+```bash
+python benchmarks/bench_train.py
+```
+
+Throughput depends on Python, NumPy, CPU, seed count, and operating system. The benchmark
+reports the median and range instead of embedding a machine-specific speed claim here.
+
+## Scope
+
+This is a research prototype built around one small tabular environment. It is useful for
+controlled comparisons and regression tests, but it is not a production reinforcement-
+learning library. In particular:
+
+- constant step sizes and finite training horizons do not establish asymptotic convergence;
+- declared bounds do not prove that an arbitrary custom modulator respects them;
+- one chain environment does not establish performance on other tasks;
+- signed mean bias can hide state-action errors, so RMSE is logged alongside it.
+
+## Development
+
+```bash
+python -m ruff check .
+python -m ruff format --check .
+python -m pytest --cov=hmea --cov-report=term-missing
+python -m build
+python -m twine check dist/*
+```
+
+Contribution guidance is in [CONTRIBUTING.md](CONTRIBUTING.md). Security reports should
+follow [SECURITY.md](SECURITY.md). Release steps are documented in
+[docs/releasing.md](docs/releasing.md).
+
+## Citation
+
+Citation metadata is available in [CITATION.cff](CITATION.cff), which GitHub can render through
+its **Cite this repository** interface.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+type: software
+title: hmea-agent
+version: 0.1.0
+date-released: 2026-08-15
+license: MIT
+repository-code: https://github.com/yniantongtian-oss/hmea-agent
+message: >-
+  If this software supports your work, cite it using the metadata in this file.
+authors:
+  - name: HMEA contributors
+abstract: >-
+  hmea-agent is a compact Python package for controlled experiments with adaptive
+  update multipliers in tabular Q-learning. It includes a vectorized chain
+  environment, five modulation policies, per-seed diagnostics, reproducible plots,
+  and validation tests.
+keywords:
+  - reinforcement learning
+  - q-learning
+  - temporal-difference learning
+  - adaptive update multiplier
+  - reproducible research

@@ -1,0 +1,21 @@
+# Line endings: normalize text files to LF on commit and checkout.
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+
+# Language stats
+*.py   linguist-language=Python
+*.ipynb linguist-language=Jupyter Notebook
+
+# Documentation formats
+*.md   text eol=lf
+*.rst  text eol=lf
+*.cff  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf

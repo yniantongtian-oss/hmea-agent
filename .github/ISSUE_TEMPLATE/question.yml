@@ -1,0 +1,29 @@
+name: Usage question
+description: Ask about installation, APIs, or experiment output
+title: "[Question] "
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: Include a short code or command sample when relevant.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: hmea-agent, Python, and NumPy versions.
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Security check
+      options:
+        - label: This question does not disclose a security vulnerability.
+          required: true
