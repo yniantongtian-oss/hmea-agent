@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -73,7 +74,8 @@ jobs:
         run: |
           python -m venv wheel-smoke
           wheel-smoke/bin/python -m pip install dist/*.whl
-          wheel-smoke/bin/python -c "import hmea; assert hmea.__version__ == '0.1.0'"
+          wheel-smoke/bin/python -c "import hmea; assert hmea.__version__ == '0.2.0'"
+          wheel-smoke/bin/python -m hmea --steps 500 --seeds 4 --format json
 
       - name: Run experiment smoke test
         run: |
