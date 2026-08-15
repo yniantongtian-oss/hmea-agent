@@ -3,6 +3,21 @@
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-08-16
+
+### Added
+
+- CLI controls for chain length, discount factor, and reward-noise level.
+- CSV output, file output, and an explicit `--format` option while retaining `--json`.
+- Schema and software-version metadata in machine-readable experiment results.
+- A weekly repository health workflow and a documented 7/14/28-day maintenance cycle.
+- A dated market-direction review with evidence, forecasts, and decision gates.
+
+### Changed
+
+- Expanded the command documentation around user outcomes and reproducible exports.
+- Moved dependency and GitHub Actions update checks from monthly to weekly.
+
 ## [0.1.0] - 2026-08-15
 
 ### Added
