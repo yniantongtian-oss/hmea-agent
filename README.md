@@ -4,8 +4,8 @@
 
 # hmea-agent
 
-A compact NumPy sandbox for measuring how adaptive update multipliers change tabular
-Q-learning.
+A compact NumPy diagnostic for measuring how adaptive update multipliers change tabular
+Q-learning, with reproducible comparisons that run on a CPU.
 
 ![Python](https://img.shields.io/badge/Python-3.10%E2%80%933.14-3776AB?logo=python&logoColor=white)
 [![CI](https://github.com/yniantongtian-oss/hmea-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/yniantongtian-oss/hmea-agent/actions/workflows/ci.yml)
@@ -20,6 +20,15 @@ The included experiment uses the same environment, seed streams, and training sc
 four update rules. In this controlled case, a multiplier computed from the current TD error
 pushes value estimates upward, while delayed signals stay close to the unmodified baseline.
 The figure is an empirical result for this configuration, not a general convergence claim.
+
+## What it does
+
+HMEA holds the environment, random seeds, and training schedule constant while changing only
+the rule that scales each temporal-difference update. It then reports estimation bias, RMSE,
+start-state value, confidence intervals, and whether the rule reads the current TD error.
+
+Use it to answer a narrow but important question: does an adaptive multiplier improve a result,
+or does feedback from the current error quietly distort the value estimates?
 
 ## Why use it
 
@@ -56,12 +65,19 @@ python -m hmea --policy fixed-lag --steps 20000 --seeds 64
 # Print JSON for a notebook, script, or CI job.
 python -m hmea --policy baseline --json
 
+# Change the controlled environment without editing Python.
+python -m hmea --states 12 --gamma 0.97 --reward-noise 0.2
+
+# Save a self-contained CSV row for each policy.
+python -m hmea --format csv --output results.csv
+
 # Run the deterministic reference configuration.
 python -m hmea --full
 ```
 
-The command does not require Matplotlib and does not write files. Its results describe the
-included chain environment only.
+The command does not require Matplotlib and writes a file only when `--output` is supplied.
+JSON and CSV results include the experiment configuration and package versions needed to audit
+the run. Results still describe the included chain environment only.
 
 ## What is included
 
@@ -179,9 +195,15 @@ python -m build
 python -m twine check dist/*
 ```
 
-Contribution guidance is in [CONTRIBUTING.md](CONTRIBUTING.md). Security reports should
-follow [SECURITY.md](SECURITY.md). Release steps are documented in
+Questions and support routes are in [SUPPORT.md](SUPPORT.md). Contribution guidance is in
+[CONTRIBUTING.md](CONTRIBUTING.md). Security reports should follow
+[SECURITY.md](SECURITY.md). Release steps are documented in
 [docs/releasing.md](docs/releasing.md).
+
+The project uses a [published maintenance cycle](docs/maintenance.md): automated health checks
+every 7 days, demand review every 14 days, and a roadmap and release decision every 28 days.
+The [market direction](docs/market-direction.md) records the evidence and decision gates behind
+the next priorities.
 
 ## Citation
 

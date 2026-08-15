@@ -1,0 +1,51 @@
+name: Weekly maintenance
+
+on:
+  schedule:
+    - cron: "17 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-maintenance
+  cancel-in-progress: true
+
+jobs:
+  health:
+    name: Repository health
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install maintenance dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Check source and tests
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .
+          python -m pytest --cov=hmea --cov-report=term-missing
+
+      - name: Build and inspect distributions
+        run: |
+          python -m build
+          python -m twine check dist/*
+
+      - name: Exercise installed command outputs
+        run: |
+          python -m hmea --steps 500 --seeds 4 --format json --output weekly-smoke.json
+          python -m hmea --steps 500 --seeds 4 --format csv --output weekly-smoke.csv
+          python -c "import csv, json; assert json.load(open('weekly-smoke.json'))['schema_version'] == 1; assert len(list(csv.DictReader(open('weekly-smoke.csv')))) == 4"

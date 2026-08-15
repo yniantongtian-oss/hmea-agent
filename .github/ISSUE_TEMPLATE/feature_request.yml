@@ -17,6 +17,18 @@ body:
     validations:
       required: true
   - type: textarea
+    id: user
+    attributes:
+      label: Intended user and workflow
+      description: Who benefits, and what do they do before and after this change?
+    validations:
+      required: true
+  - type: textarea
+    id: demand
+    attributes:
+      label: Demand evidence
+      description: Link related issues, discussions, projects, papers, or repeated workflows if available.
+  - type: textarea
     id: evidence
     attributes:
       label: Evaluation plan

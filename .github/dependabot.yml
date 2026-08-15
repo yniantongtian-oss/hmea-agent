@@ -3,7 +3,10 @@ updates:
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+      day: monday
+      time: "11:00"
+      timezone: Asia/Taipei
     open-pull-requests-limit: 5
     groups:
       python-dependencies:
@@ -12,7 +15,10 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+      day: monday
+      time: "11:30"
+      timezone: Asia/Taipei
     open-pull-requests-limit: 5
     groups:
       actions:
