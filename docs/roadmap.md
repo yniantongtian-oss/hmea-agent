@@ -2,12 +2,17 @@
 
 These are open directions, not release promises.
 
+## Implemented, unreleased
+
+- Paired comparisons against a chosen reference policy, with final RMSE and signed-bias
+  differences, reproducible bootstrap intervals, and per-seed JSON exports. See the
+  [comparison guide](comparing-policies.md).
+
 ## Near term
 
 - Add property-based tests for custom modulator shape, bounds, and reset behavior.
 - Report additional diagnostics such as policy accuracy and state-action error heatmaps.
 - Add a small deterministic environment with stochastic transitions.
-- Document paired statistical comparisons across common seed streams.
 - Add an optional Gymnasium adapter for discrete toy-text environments without making it a
   core dependency.
 

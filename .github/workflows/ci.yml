@@ -76,6 +76,8 @@ jobs:
           wheel-smoke/bin/python -m pip install dist/*.whl
           wheel-smoke/bin/python -c "import hmea; assert hmea.__version__ == '0.2.0'"
           wheel-smoke/bin/python -m hmea --steps 500 --seeds 4 --format json
+          wheel-smoke/bin/hmea-compare --steps 500 --seeds 4 --compare-to baseline --format json --output paired-smoke.json
+          wheel-smoke/bin/python -c "import json; p = json.load(open('paired-smoke.json')); assert p['schema_version'] == 2; assert len(p['paired_comparisons']) == 6; assert all(r['n_pairs'] == 4 for r in p['paired_comparisons'])"
 
       - name: Run experiment smoke test
         run: |
