@@ -3,6 +3,17 @@
 This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Opt-in `--compare-to` reference comparisons for final RMSE and signed bias using matched seeds.
+- NumPy-only paired percentile bootstrap intervals, with reproducible sampling and an explicit
+  indicator for zero observed variation.
+- Paired JSON exports with per-seed differences and long-form CSV summaries with experiment
+  and comparison metadata; output without `--compare-to` is unchanged.
+- A practical comparison guide covering interpretation, repeatable runs, and uncertainty limits.
+
 ## [0.2.0] - 2026-08-16
 
 ### Added

@@ -36,6 +36,7 @@ HMEA is intended for reinforcement-learning students, researchers, and engineers
 small experiment they can inspect end to end. It helps users:
 
 - compare update policies under the same environment, seeds, and training schedule;
+- measure paired differences against a reference policy, with reproducible uncertainty intervals;
 - detect feedback-driven estimation bias instead of relying only on average reward;
 - inspect per-seed bias, RMSE, start-state values, and final Q-tables;
 - test a custom multiplier through a small protocol with explicit structural checks;
@@ -79,12 +80,47 @@ The command does not require Matplotlib and writes a file only when `--output` i
 JSON and CSV results include the experiment configuration and package versions needed to audit
 the run. Results still describe the included chain environment only.
 
+## Compare against the baseline
+
+This feature is implemented in the development version, not the v0.2.0 release. Use a source
+checkout containing these changes and install it with `python -m pip install -e .` before running
+the commands below. Cloning the default branch before these changes are merged will not enable it.
+
+Add `--compare-to baseline` to measure each candidate's difference from ordinary Q-learning,
+pairing the final metrics from matching seeded replicas:
+
+```bash
+# Compare all built-in candidates with the baseline.
+python -m hmea --compare-to baseline
+
+# Save a larger paired comparison for one candidate.
+python -m hmea --policy fixed-lag --compare-to baseline --full --format json --output comparison.json
+```
+
+The report shows absolute results and paired differences with approximate 95% bootstrap
+intervals. Read each difference as **candidate minus reference**:
+
+- **RMSE:** negative means lower estimation error than the reference in this experiment.
+- **Signed bias:** negative means a downward shift, not necessarily an improvement.
+- **An interval spanning zero:** the comparison is inconclusive, not evidence of equivalence.
+
+The reference is trained automatically, using the same configuration and seed count. Paired mode
+requires at least two seeds. The `--full` preset uses 80,000 steps and 128 seeds; explicit
+`--steps` and `--seeds` values override the preset.
+
+Without `--compare-to`, the existing output formats remain unchanged. Paired JSON includes
+per-seed differences; paired CSV contains one summary row per candidate and metric. These are
+exploratory comparisons, not a leaderboard or a claim about other environments. Follow the
+[comparison guide](docs/comparing-policies.md) for export formats, repeatable runs, and
+interpretation details.
+
 ## What is included
 
 - A vectorized two-action `ChainMDP` with deterministic dynamics and optional reward noise.
 - Batched tabular Q-learning with separate action-selection streams for each seed.
 - Baseline, immediate, clipped, fixed-lag, and leaky-state modulation policies.
 - Per-seed bias, RMSE, and start-state value logs.
+- Paired reference comparisons for final RMSE and signed bias, with NumPy-only bootstrap intervals.
 - Reproducible comparison scripts, a throughput benchmark, tests, packaging checks, and
   GitHub contribution templates.
 
@@ -162,6 +198,7 @@ python experiments/training_dynamics.py
 | `LaggedModulation` | Multiplier computed from a fixed-delay TD error |
 | `HomeostaticModulation` | Multiplier computed from the previous leaky-state value |
 | `audit` | Structural report for a modulator declaration |
+| `hmea.statistics.paired_mean_difference` | Paired metric differences and a reproducible bootstrap interval (development version) |
 
 See [docs/method.md](docs/method.md) for equations, metrics, and interpretation limits.
 

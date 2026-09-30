@@ -77,6 +77,56 @@ The plotted confidence intervals use seeded replicas as the sampling units. They
 run-to-run variation in this simulation; they are not uncertainty intervals over all possible
 environments or hyperparameters.
 
+## Paired reference comparisons
+
+This section describes the development version; the paired report is not included in v0.2.0.
+
+The opt-in `--compare-to` report compares each candidate with a named reference policy using
+the final RMSE and signed bias from matching seeded replicas. For each metric, it computes:
+
+```text
+d_i = candidate_metric_i - reference_metric_i
+mean_difference = mean(d_i)
+```
+
+Pairing happens before summarization. Subtracting separately reported confidence limits, or
+judging whether two marginal intervals overlap, is not the method used here. Negative RMSE
+differences indicate lower estimation error in the evaluated configuration. A negative signed
+bias difference indicates a downward shift in estimates; it does not by itself indicate lower
+absolute bias or lower RMSE.
+
+The interval uses a paired percentile bootstrap: sample `n_pairs` complete differences with
+replacement, calculate their mean, and repeat 10,000 times. The 2.5th and 97.5th percentiles of
+those bootstrap means form the reported approximate 95% interval. The command uses bootstrap
+seed `0`, separate from the training root seed. The Python helper
+`hmea.statistics.paired_mean_difference` exposes `n_resamples` and `seed` for bootstrap control.
+The runner `hmea.cli.run_paired_comparison` names these arguments `bootstrap_resamples` and
+`bootstrap_seed`, keeping them separate from its training `seed` parameter.
+
+At least two pairs are required. Small samples can give unstable intervals, and a larger
+bootstrap resample count does not replace collecting more seeded replicas. When all observed
+differences are identical, the interval collapses; `observed_zero_variance` records this case.
+It describes the observed sample, not certainty about unseen runs.
+
+These intervals are exploratory and are not simultaneous confidence intervals across policies
+or metrics. There is no multiple-comparison correction, p-value, or automatic winner selection.
+An interval containing zero is inconclusive, not an equivalence test. Inspect absolute RMSE and
+bias alongside differences, and evaluate additional configurations before generalizing.
+
+### What shared seed streams control
+
+Candidate and reference runs use the same root seed, number of seeded replicas, and experiment
+configuration. This shares the underlying random draws, but different update rules can still
+produce different action choices and state trajectories. Common streams do not guarantee lower
+variance for every comparison.
+
+Keep the seed count fixed when reproducing a paired run. Changing it changes the mapping of
+random streams; a larger run is not a simple extension of the earlier seed sample. The comparison
+report records the training configuration and bootstrap metadata so that the complete experiment
+can be repeated.
+
+See [Comparing policies](comparing-policies.md) for commands and output-field interpretation.
+
 ## References
 
 - Watkins, C. J. C. H. and Dayan, P. (1992),
