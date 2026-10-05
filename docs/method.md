@@ -79,7 +79,7 @@ environments or hyperparameters.
 
 ## Paired reference comparisons
 
-This section describes the development version; the paired report is not included in v0.2.0.
+This section describes the default branch; the paired report is not included in v0.2.0.
 
 The opt-in `--compare-to` report compares each candidate with a named reference policy using
 the final RMSE and signed bias from matching seeded replicas. For each metric, it computes:
