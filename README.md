@@ -82,9 +82,8 @@ the run. Results still describe the included chain environment only.
 
 ## Compare against the baseline
 
-This feature is implemented in the development version, not the v0.2.0 release. Use a source
-checkout containing these changes and install it with `python -m pip install -e .` before running
-the commands below. Cloning the default branch before these changes are merged will not enable it.
+This feature is available on the default branch, but is not part of the v0.2.0 release. Clone
+the repository and install it with `python -m pip install -e .` before running the commands below.
 
 Add `--compare-to baseline` to measure each candidate's difference from ordinary Q-learning,
 pairing the final metrics from matching seeded replicas:
@@ -198,7 +197,7 @@ python experiments/training_dynamics.py
 | `LaggedModulation` | Multiplier computed from a fixed-delay TD error |
 | `HomeostaticModulation` | Multiplier computed from the previous leaky-state value |
 | `audit` | Structural report for a modulator declaration |
-| `hmea.statistics.paired_mean_difference` | Paired metric differences and a reproducible bootstrap interval (development version) |
+| `hmea.statistics.paired_mean_difference` | Paired metric differences and a reproducible bootstrap interval (default branch; unreleased) |
 
 See [docs/method.md](docs/method.md) for equations, metrics, and interpretation limits.
 

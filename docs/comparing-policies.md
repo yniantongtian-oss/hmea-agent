@@ -4,10 +4,9 @@ Use a paired comparison to ask whether an update rule changes estimation error r
 reference under one controlled experiment. HMEA compares final metrics from matching seeded
 replicas instead of treating the two policies as unrelated samples.
 
-The paired CLI and Python APIs described here are implemented in the development version and
-are not part of the v0.2.0 release. From a source checkout containing these changes, install
-with `python -m pip install -e .`. A v0.2.0 installation, or the default branch before these
-changes are merged, does not support `--compare-to`.
+The paired CLI and Python APIs described here are available on the default branch and
+are not part of the v0.2.0 release. From a current source checkout, install
+with `python -m pip install -e .`. The v0.2.0 release does not support `--compare-to`.
 
 ## Start with the baseline
 
