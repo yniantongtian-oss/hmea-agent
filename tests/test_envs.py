@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from hmea import ChainMDP
+from hmea.envs import _NOISE_BLOCK
 
 
 def test_deterministic_transitions_and_terminal_reward():
@@ -15,6 +16,49 @@ def test_deterministic_transitions_and_terminal_reward():
 def test_optimal_q_matches_small_chain():
     q_star = ChainMDP(n_states=3, gamma=0.9, sigma_r=0.0).optimal_q()
     np.testing.assert_allclose(q_star, [[0.81, 0.9], [0.81, 1.0], [0.0, 0.0]])
+
+
+def test_noise_stream_matches_the_buffered_generator():
+    states = np.array([0, 1, 1, 0])
+    actions = np.array([0, 0, 1, 1])
+    env = ChainMDP(n_states=4, sigma_r=0.2)
+    env.rng = np.random.default_rng(42)
+
+    first = env.step(states, actions)[1]
+    second = env.step(states, actions)[1]
+
+    np.testing.assert_allclose(
+        first,
+        [0.06094341595088627, -0.20799682124809912, 0.15009023916129147, 0.1881129432782428],
+    )
+    np.testing.assert_allclose(
+        second,
+        [-0.3902070377307673, -0.26043590137246364, 0.025568080633457075, -0.06324851846871644],
+    )
+
+
+def test_noise_batch_larger_than_the_internal_block_is_complete():
+    count = _NOISE_BLOCK + 3
+    env = ChainMDP(n_states=4, sigma_r=0.2)
+    env.rng = np.random.default_rng(7)
+    states = np.zeros(count, dtype=np.int64)
+    actions = np.zeros(count, dtype=np.int64)
+
+    rewards = env.step(states, actions)[1]
+    again = env.step(states[:4], actions[:4])[1]
+
+    assert rewards.shape == (count,)
+    assert np.isfinite(rewards).all()
+    assert np.count_nonzero(rewards) == count
+    assert again.shape == (4,)
+    assert np.isfinite(again).all()
+
+
+def test_environment_rejects_boolean_counts():
+    with pytest.raises(TypeError, match="n_states"):
+        ChainMDP(n_states=True)
+    with pytest.raises(TypeError, match="n_seeds"):
+        ChainMDP().reset(True)
 
 
 def test_noise_is_reproducible_with_explicit_generator():

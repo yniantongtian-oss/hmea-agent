@@ -27,7 +27,9 @@ python -m hmea --policy fixed-lag --compare-to baseline
 ```
 
 The reference runs automatically even when it is not selected by `--policy`. Available reference
-names are `baseline`, `immediate`, `fixed-lag`, and `leaky-state`. Selecting only the reference
+names are `baseline`, `immediate`, `fixed-lag`, `leaky-state`, and `clipped`. `--policy all` still
+runs only the four reference rules; pass `--policy clipped` to include the narrow online rule.
+Selecting only the reference
 itself, such as `--policy baseline --compare-to baseline`, is rejected because it would not
 compare two different policies. Paired mode also requires at least two seeds.
 

@@ -12,6 +12,8 @@ _NOISE_BLOCK = 65_536
 
 
 def _integer(name: str, value: object, *, minimum: int) -> int:
+    if isinstance(value, (bool, np.bool_)):
+        raise TypeError(f"{name} must be an integer")
     try:
         result = operator.index(value)
     except TypeError as exc:
@@ -79,6 +81,24 @@ class ChainMDP:
         self._noise_buffer: np.ndarray | None = None
         self._noise_pointer = 0
 
+    def _reward_noise(self, count: int) -> np.ndarray:
+        """Return ``count`` reward-noise samples from the environment generator.
+
+        Requests that fit in the internal block reuse one draw sequence across
+        steps. A larger request draws exactly ``count`` values; it does not
+        truncate the sample to the block.
+        """
+        if count > _NOISE_BLOCK:
+            return self.rng.normal(0.0, self.sigma_r, count)
+        noise_buffer = self._noise_buffer
+        if noise_buffer is None or self._noise_pointer + count > noise_buffer.size:
+            noise_buffer = self.rng.normal(0.0, self.sigma_r, _NOISE_BLOCK)
+            self._noise_buffer = noise_buffer
+            self._noise_pointer = 0
+        start = self._noise_pointer
+        self._noise_pointer += count
+        return noise_buffer[start : start + count]
+
     def reset(self, n_seeds: int) -> np.ndarray:
         """Return state zero for each parallel run."""
         return np.zeros(_integer("n_seeds", n_seeds, minimum=1), dtype=np.int64)
@@ -116,14 +136,7 @@ class ChainMDP:
                 raise ValueError("shaping must return finite values")
             rewards = rewards + shaped
         if self.sigma_r > 0.0:
-            noise_buffer = self._noise_buffer
-            if noise_buffer is None or self._noise_pointer + states.size > noise_buffer.size:
-                noise_buffer = self.rng.normal(0.0, self.sigma_r, _NOISE_BLOCK)
-                self._noise_buffer = noise_buffer
-                self._noise_pointer = 0
-            start = self._noise_pointer
-            self._noise_pointer += states.size
-            rewards += noise_buffer[start : start + states.size] * ~done
+            rewards += self._reward_noise(states.size) * ~done
         return next_states, rewards, done
 
     def optimal_q(self) -> np.ndarray:

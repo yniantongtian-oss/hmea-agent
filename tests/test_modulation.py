@@ -79,6 +79,19 @@ def test_modulators_reject_invalid_parameters(factory, error):
         factory()
 
 
+def test_lag_rejects_whole_number_floats_and_booleans():
+    with pytest.raises(ValueError, match="lag"):
+        LaggedModulation(lag=8.0)
+    with pytest.raises(ValueError, match="lag"):
+        LaggedModulation(lag=True)
+    assert LaggedModulation(lag=np.int64(2)).lag == 2
+
+
+def test_reset_rejects_boolean_seed_count():
+    with pytest.raises(TypeError, match="n_seeds"):
+        NoModulation().reset(True)
+
+
 def test_homeostatic_modulator_rejects_shape_change():
     modulator = HomeostaticModulation()
     modulator.reset(2)

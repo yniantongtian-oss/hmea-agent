@@ -8,7 +8,7 @@ from typing import TypedDict
 
 import numpy as np
 
-from .envs import _NOISE_BLOCK, ChainMDP
+from .envs import ChainMDP
 from .modulation import Modulator
 from .validation import ModulatorAudit, validate_modulator
 
@@ -30,6 +30,8 @@ class TrainLog(TypedDict):
 
 
 def _positive_integer(name: str, value: object) -> int:
+    if isinstance(value, (bool, np.bool_)):
+        raise TypeError(f"{name} must be an integer")
     try:
         result = operator.index(value)
     except TypeError as exc:
@@ -70,6 +72,8 @@ class QAgent:
             raise ValueError("eps_min must satisfy 0 <= eps_min <= eps0")
         if not math.isfinite(eps_decay) or not 0.0 < eps_decay <= 1.0:
             raise ValueError("eps_decay must satisfy 0 < eps_decay <= 1")
+        if isinstance(seed, (bool, np.bool_)):
+            raise TypeError("seed must be an integer")
         try:
             seed = operator.index(seed)
         except TypeError as exc:
@@ -90,6 +94,8 @@ class QAgent:
 
         The final step is always logged, even when ``n_steps`` is not divisible
         by ``log_every``. Per-seed arrays have shape ``(n_logs, n_seeds)``.
+        ``multiplier`` must return one finite value per seed. If it returns the
+        TD-error array itself, that array is copied before the in-place update.
         """
         n_steps = _positive_integer("n_steps", n_steps)
         n_seeds = _positive_integer("n_seeds", n_seeds)
@@ -176,14 +182,7 @@ class QAgent:
                     raise ValueError("shaping must return finite values")
                 rewards = rewards + shaped
             if sigma_r > 0.0:
-                noise_buffer = env._noise_buffer
-                if noise_buffer is None or env._noise_pointer + n_seeds > noise_buffer.size:
-                    noise_buffer = env.rng.normal(0.0, sigma_r, _NOISE_BLOCK)
-                    env._noise_buffer = noise_buffer
-                    env._noise_pointer = 0
-                start = env._noise_pointer
-                env._noise_pointer += n_seeds
-                rewards += noise_buffer[start : start + n_seeds] * ~done
+                rewards += env._reward_noise(n_seeds) * ~done
 
             next_base = row_offset + next_states + next_states
             old_values = q_flat[selected]
@@ -192,7 +191,16 @@ class QAgent:
             td_error *= gamma
             td_error += rewards
             td_error -= old_values
-            multiplier_values = multiplier(td_error, step)
+            raw_multiplier = multiplier(td_error, step)
+            aliased = raw_multiplier is td_error
+            try:
+                multiplier_values = np.asarray(raw_multiplier, dtype=np.float64)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("multiplier must return one finite value per seed") from exc
+            if aliased:
+                multiplier_values = multiplier_values.copy()
+            if multiplier_values.shape != (n_seeds,) or not np.isfinite(multiplier_values).all():
+                raise ValueError("multiplier must return one finite value per seed")
             td_error *= self.alpha
             td_error *= multiplier_values
             td_error += old_values

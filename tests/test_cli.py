@@ -140,6 +140,24 @@ def test_main_writes_json_file(tmp_path, capsys):
     assert "Wrote json results" in capsys.readouterr().out
 
 
+def test_run_comparison_rejects_unknown_policy():
+    with pytest.raises(ValueError, match="unknown policy"):
+        run_comparison(n_steps=5, n_seeds=1, log_every=5, policy="missing")
+
+
+def test_main_can_select_clipped_without_adding_it_to_all(capsys):
+    assert (
+        main(
+            ["--steps", "20", "--seeds", "1", "--log-every", "20", "--policy", "clipped", "--json"]
+        )
+        == 0
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert [row["policy"] for row in payload["results"]] == ["Clipped"]
+    assert payload["results"][0]["uses_current_td_error"] is True
+
+
 def test_main_rejects_conflicting_output_flags():
     with pytest.raises(SystemExit):
         main(["--json", "--format", "csv"])
