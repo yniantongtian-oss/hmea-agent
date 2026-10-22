@@ -10,6 +10,8 @@ Q(s_t, a_t) <- Q(s_t, a_t) + alpha * m_t * delta_t
 ```
 
 `m_t = 1` is ordinary Q-learning. The included policies change only how `m_t` is chosen.
+The training loop requires one finite multiplier per seed. A custom multiplier that returns
+the TD-error array itself is copied before the in-place update, so that array is not scaled twice.
 
 | Policy | Signal used for `m_t` |
 |---|---|
@@ -126,6 +128,22 @@ report records the training configuration and bootstrap metadata so that the com
 can be repeated.
 
 See [Comparing policies](comparing-policies.md) for commands and output-field interpretation.
+
+## Experiment specs
+
+A spec names the policies, schedule, environment, seed, and optional reference comparison.
+`compile_spec` resolves omitted fields to the short CLI defaults, or to the reference preset
+when the description asks for the full configuration. Explicit counts replace only the fields
+they name. The same canonical parameters produce the same `spec_id` whether they came from
+prose, JSON, or a language model.
+
+The packaged parser does not open a network connection. A caller can pass a `LanguageModel`
+whose `complete` method returns JSON. Invalid model output falls back to the deterministic
+parser. `run_spec` trains that resolved spec and does not call a model. See
+[Experiment specs](experiment-specs.md).
+
+Reward noise for a batch larger than the internal draw block is sampled at the requested
+length. Smaller batches keep the previous buffered sequence.
 
 ## References
 

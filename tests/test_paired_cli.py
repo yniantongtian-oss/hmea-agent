@@ -13,7 +13,13 @@ from hmea.cli import main, run_comparison, run_paired_comparison
 @pytest.fixture
 def recorded_training(monkeypatch):
     calls = []
-    offsets = {"none": 0.0, "online": 0.3, "lagged": 0.02, "homeostatic": -0.01}
+    offsets = {
+        "none": 0.0,
+        "online": 0.3,
+        "lagged": 0.02,
+        "homeostatic": -0.01,
+        "clipped": 0.04,
+    }
 
     def train(agent, n_steps, n_seeds=64, log_every=500):
         calls.append(
@@ -90,6 +96,26 @@ def test_all_policies_train_once_with_matching_configuration(recorded_training):
     assert len(result["paired_comparisons"]) == 6
     assert {row["metric"] for row in result["paired_comparisons"]} == {"rmse", "bias"}
     assert all(row["policy"] != "Baseline" for row in result["paired_comparisons"])
+
+
+def test_explicit_policy_list_trains_only_requested_rules(recorded_training):
+    result = run_paired_comparison(
+        n_steps=11,
+        n_seeds=4,
+        log_every=5,
+        policies=["clipped", "immediate"],
+        reference_policy="baseline",
+        bootstrap_resamples=21,
+    )
+
+    assert Counter(call["name"] for call in recorded_training) == {
+        "none": 1,
+        "clipped": 1,
+        "online": 1,
+    }
+    assert [row["policy"] for row in result["results"]] == ["Baseline", "Clipped", "Immediate"]
+    assert len(result["paired_comparisons"]) == 4
+    assert {row["policy"] for row in result["paired_comparisons"]} == {"Clipped", "Immediate"}
 
 
 def test_single_policy_adds_reference_and_pairs_final_step(recorded_training):

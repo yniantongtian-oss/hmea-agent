@@ -74,6 +74,9 @@ python -m hmea --format csv --output results.csv
 
 # Run the deterministic reference configuration.
 python -m hmea --full
+
+# Run the narrow online rule. It is not part of --policy all.
+python -m hmea --policy clipped --steps 5000 --seeds 16
 ```
 
 The command does not require Matplotlib and writes a file only when `--output` is supplied.
@@ -112,6 +115,36 @@ per-seed differences; paired CSV contains one summary row per candidate and metr
 exploratory comparisons, not a leaderboard or a claim about other environments. Follow the
 [comparison guide](docs/comparing-policies.md) for export formats, repeatable runs, and
 interpretation details.
+
+## Describe an experiment
+
+This feature is available on the default branch, but is not part of the v0.2.0 release.
+
+`hmea-spec` compiles a short description into one reproducible request. The deterministic
+parser handles prose, `key: value` lines, and JSON. It does not call a language model.
+Passing `--run` trains the resolved spec with the same routines as `hmea-compare`.
+
+```bash
+python -m hmea.spec "compare immediate to baseline with 5000 steps and 16 seeds"
+python -m hmea.spec "baseline, 2000 steps, 8 seeds, reward noise 0" --run
+```
+
+Equivalent wording produces the same `spec_id`. Omitted fields use the short defaults above.
+`full reference` selects the 80,000-step, 128-seed preset, and an explicit count replaces
+only that field. The Python API can accept a caller-supplied model; invalid model output
+falls back to the deterministic parser. See [Experiment specs](docs/experiment-specs.md).
+
+## Use diagnostics as tools
+
+`hmea-tools` lists policies, audits a built-in rule, compiles a spec, runs it, and summarizes
+a paired difference. `hmea-tools serve` and `python -m hmea.mcp` expose those operations as
+newline-delimited MCP tools. Both stay on this machine: they do not open a network connection
+or call a model. See [Diagnostic tools](docs/diagnostics-tools.md).
+
+```bash
+python -m hmea.tools list-policies
+python -m hmea.tools parse "compare clipped to baseline, 20 steps, 2 seeds"
+```
 
 ## What is included
 
@@ -198,6 +231,9 @@ python experiments/training_dynamics.py
 | `HomeostaticModulation` | Multiplier computed from the previous leaky-state value |
 | `audit` | Structural report for a modulator declaration |
 | `hmea.statistics.paired_mean_difference` | Paired metric differences and a reproducible bootstrap interval (default branch; unreleased) |
+| `hmea.spec.compile_spec` | Compile prose, JSON, or key-value text into a reproducible experiment spec (default branch; unreleased) |
+| `hmea.spec.run_spec` | Train a compiled spec, including an optional paired comparison |
+| `hmea.diagnostics` | Local policy, spec, run, and paired-difference tools used by the CLI and MCP server |
 
 See [docs/method.md](docs/method.md) for equations, metrics, and interpretation limits.
 

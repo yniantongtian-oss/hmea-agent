@@ -32,6 +32,8 @@ class HomeostaticState:
 
     def reset(self, n_seeds: int) -> None:
         """Reset the controller for ``n_seeds`` parallel runs."""
+        if isinstance(n_seeds, (bool, np.bool_)):
+            raise TypeError("n_seeds must be an integer")
         try:
             n_seeds = operator.index(n_seeds)
         except TypeError as exc:

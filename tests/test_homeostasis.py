@@ -38,3 +38,5 @@ def test_reset_requires_at_least_one_seed():
         HomeostaticState().reset(0)
     with pytest.raises(TypeError):
         HomeostaticState().reset(1.5)
+    with pytest.raises(TypeError):
+        HomeostaticState().reset(True)

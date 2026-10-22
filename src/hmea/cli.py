@@ -17,6 +17,7 @@ from . import __version__
 from .agent import QAgent
 from .envs import ChainMDP
 from .modulation import (
+    ClippedModulation,
     HomeostaticModulation,
     LaggedModulation,
     Modulator,
@@ -34,6 +35,7 @@ FULL_LOG_EVERY = 400
 DEFAULT_STATES = 8
 DEFAULT_GAMMA = 0.99
 DEFAULT_REWARD_NOISE = 0.1
+DEFAULT_COMPARISON_POLICIES = ("baseline", "immediate", "fixed-lag", "leaky-state")
 
 
 class ComparisonResult(TypedDict):
@@ -95,7 +97,42 @@ def _policy_factories() -> dict[str, tuple[str, Callable[[], Modulator]]]:
                 eta=0.05,
             ),
         ),
+        "clipped": (
+            "Clipped",
+            lambda: ClippedModulation(beta=0.4, tau=0.5, bounds=(0.8, 1.2)),
+        ),
     }
+
+
+def available_policies() -> tuple[str, ...]:
+    """Return selectable policy ids, including rules omitted from the default comparison."""
+    return tuple(_policy_factories())
+
+
+def _resolve_policies(policy: str, policies: Sequence[str] | None = None) -> list[str]:
+    """Return policy ids to train.
+
+    An explicit ``policies`` list is used as given. ``policy="all"`` selects the
+    four-rule reference comparison. ``clipped`` can be named directly and is not
+    part of that default comparison.
+    """
+    factories = _policy_factories()
+    if policies is not None:
+        if policy != "all":
+            raise ValueError("pass policy or policies, not both")
+        selected = list(policies)
+        if not selected:
+            raise ValueError("policies must not be empty")
+    elif policy == "all":
+        selected = list(DEFAULT_COMPARISON_POLICIES)
+    else:
+        selected = [policy]
+    for name in selected:
+        if name not in factories:
+            raise ValueError(f"unknown policy: {name}")
+    if len(selected) != len(set(selected)):
+        raise ValueError("policies must not contain duplicates")
+    return selected
 
 
 def _ci95(values: np.ndarray) -> float:
@@ -152,13 +189,18 @@ def run_comparison(
     log_every: int,
     seed: int = 0,
     policy: str = "all",
+    policies: Sequence[str] | None = None,
     n_states: int = DEFAULT_STATES,
     gamma: float = DEFAULT_GAMMA,
     sigma_r: float = DEFAULT_REWARD_NOISE,
 ) -> list[ComparisonResult]:
-    """Run one or all built-in policies with a shared experiment configuration."""
+    """Run built-in policies with a shared experiment configuration.
+
+    ``policies`` selects an explicit list. Otherwise ``policy`` selects one rule
+    or the default comparison.
+    """
     rows, _ = _run_policies(
-        policies=list(_policy_factories()) if policy == "all" else [policy],
+        policies=_resolve_policies(policy, policies),
         n_steps=n_steps,
         n_seeds=n_seeds,
         log_every=log_every,
@@ -181,6 +223,7 @@ def run_paired_comparison(
     gamma: float = DEFAULT_GAMMA,
     sigma_r: float = DEFAULT_REWARD_NOISE,
     reference_policy: str = "baseline",
+    policies: Sequence[str] | None = None,
     bootstrap_resamples: int = 10_000,
     bootstrap_seed: int = 0,
 ) -> PairedComparison:
@@ -194,9 +237,10 @@ def run_paired_comparison(
     factories = _policy_factories()
     if reference_policy not in factories:
         raise ValueError(f"unknown reference policy: {reference_policy}")
-    if policy != "all" and policy not in factories:
-        raise ValueError(f"unknown policy: {policy}")
-    if policy == reference_policy:
+    selected = _resolve_policies(policy, policies)
+    if reference_policy not in selected:
+        selected = [reference_policy, *selected]
+    if not any(name != reference_policy for name in selected):
         raise ValueError("select a candidate policy different from the reference policy")
     if isinstance(n_seeds, (bool, np.bool_)) or not isinstance(n_seeds, (int, np.integer)):
         raise ValueError("paired comparison requires an integer n_seeds of at least 2")
@@ -204,7 +248,7 @@ def run_paired_comparison(
         raise ValueError("paired comparison requires at least 2 seeds")
     # Validate bootstrap settings before spending time training any policies.
     paired_mean_difference([0, 0], [0, 0], n_resamples=bootstrap_resamples, seed=bootstrap_seed)
-    policies = list(factories) if policy == "all" else [reference_policy, policy]
+    policies = selected
     rows, observations = _run_policies(
         policies=policies,
         n_steps=n_steps,
@@ -473,7 +517,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--policy",
         choices=("all", *_policy_factories()),
         default="all",
-        help="policy to run (default: all)",
+        help="policy to run (default: all; clipped is available but omitted from all)",
     )
     parser.add_argument(
         "--compare-to",

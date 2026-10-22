@@ -11,12 +11,26 @@ from .homeostasis import HomeostaticState
 
 
 def _seed_count(value: object) -> int:
+    if isinstance(value, (bool, np.bool_)):
+        raise TypeError("n_seeds must be an integer")
     try:
         result = operator.index(value)
     except TypeError as exc:
         raise TypeError("n_seeds must be an integer") from exc
     if result < 1:
         raise ValueError("n_seeds must be >= 1")
+    return result
+
+
+def _positive_lag(value: object) -> int:
+    if isinstance(value, (bool, np.bool_)):
+        raise ValueError("lag must be an integer >= 1")
+    try:
+        result = operator.index(value)
+    except TypeError as exc:
+        raise ValueError("lag must be an integer >= 1") from exc
+    if result < 1:
+        raise ValueError("lag must be an integer >= 1")
     return result
 
 
@@ -160,10 +174,9 @@ class LaggedModulation(_BoundedModulationBase):
         tau: float = 0.5,
         bounds: tuple[float, float] = (0.5, 2.0),
     ):
-        if isinstance(lag, bool) or int(lag) != lag or int(lag) < 1:
-            raise ValueError("lag must be an integer >= 1")
+        lag = _positive_lag(lag)
         super().__init__(beta, tau, bounds)
-        self.lag = int(lag)
+        self.lag = lag
         self._history: list[np.ndarray] | None = None
         self._pointer = 0
         self._seen = 0

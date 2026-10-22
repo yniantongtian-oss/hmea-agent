@@ -7,6 +7,12 @@ These are open directions, not release promises.
 - Paired comparisons against a chosen reference policy, with final RMSE and signed-bias
   differences, reproducible bootstrap intervals, and per-seed JSON exports. See the
   [comparison guide](comparing-policies.md).
+- Natural-language experiment specs with a deterministic parser and an optional caller-supplied
+  language model. The compiled spec is what gets trained. See
+  [Experiment specs](experiment-specs.md).
+- A local diagnostics CLI and newline-delimited MCP server exposing policy audits, spec
+  compilation, experiment runs, and paired differences. See
+  [Diagnostic tools](diagnostics-tools.md).
 
 ## Near term
 

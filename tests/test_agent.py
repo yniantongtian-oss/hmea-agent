@@ -77,6 +77,66 @@ def test_train_applies_potential_shaping():
     assert np.isfinite(log["q_values"]).all()
 
 
+def test_train_rejects_boolean_sizes_and_seed():
+    with pytest.raises(TypeError, match="seed must be an integer"):
+        QAgent(ChainMDP(), NoModulation(), seed=True)
+    with pytest.raises(TypeError, match="n_steps must be an integer"):
+        QAgent(ChainMDP(), NoModulation()).train(n_steps=True)
+
+
+def test_train_rejects_bad_multiplier_shape_and_non_finite_values():
+    class BadShape:
+        name = "bad-shape"
+        bounds = (1.0, 1.0)
+        lag = 0
+        uses_current_td_error = False
+
+        def reset(self, n_seeds):
+            return None
+
+        def multiplier(self, td_error, step):
+            return np.ones(td_error.shape[0] + 1)
+
+    class BadValue(BadShape):
+        name = "bad-value"
+
+        def multiplier(self, td_error, step):
+            values = np.ones(td_error.shape[0])
+            values[0] = np.nan
+            return values
+
+    env = ChainMDP(n_states=3, sigma_r=0.0)
+    with pytest.raises(ValueError, match="one finite value per seed"):
+        QAgent(env, BadShape(), seed=0).train(n_steps=1, n_seeds=2, log_every=1)
+    with pytest.raises(ValueError, match="one finite value per seed"):
+        QAgent(env, BadValue(), seed=0).train(n_steps=1, n_seeds=2, log_every=1)
+
+
+def test_multiplier_that_returns_td_error_is_not_scaled_twice():
+    class Alias:
+        name = "alias"
+        bounds = (0.5, 2.0)
+        lag = 0
+        uses_current_td_error = False
+
+        def reset(self, n_seeds):
+            return None
+
+        def multiplier(self, td_error, step):
+            return td_error
+
+    def shaping(state, next_state):
+        return 1.0
+
+    env = ChainMDP(n_states=3, gamma=0.0, sigma_r=0.0, shaping=shaping)
+    log = QAgent(env, Alias(), alpha=0.5, eps0=0.0, eps_min=0.0, seed=0).train(
+        n_steps=1, n_seeds=1, log_every=1
+    )
+
+    assert log["q_values"][0, 0, 0] == pytest.approx(0.5)
+    assert log["q_values"][0, 0, 1] == 0.0
+
+
 def test_train_rejects_non_finite_shaping():
     def bad_shaping(state: int, next_state: int) -> float:
         return float("nan")

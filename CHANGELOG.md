@@ -7,12 +7,39 @@ This file follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 
 ### Added
 
+- A deterministic experiment-spec compiler for prose, key-value text, and JSON, plus an optional
+  caller-supplied language model that falls back to that parser. Compiled specs expose a stable
+  `spec_id` and can be trained with `run_spec` or `hmea-spec --run`.
+- `hmea-tools` and a newline-delimited MCP server (`python -m hmea.mcp`) for listing policies,
+  auditing a built-in rule, compiling a spec, running it, and summarizing a paired difference.
+  These entry points do not call a language model or open a network connection.
+- Explicit `--policy clipped` selection. The default `--policy all` comparison remains the four
+  reference rules.
 - Opt-in `--compare-to` reference comparisons for final RMSE and signed bias using matched seeds.
 - NumPy-only paired percentile bootstrap intervals, with reproducible sampling and an explicit
   indicator for zero observed variation.
 - Paired JSON exports with per-seed differences and long-form CSV summaries with experiment
   and comparison metadata; output without `--compare-to` is unchanged.
 - A practical comparison guide covering interpretation, repeatable runs, and uncertainty limits.
+- Guides for [experiment specs](docs/experiment-specs.md) and [diagnostic tools](docs/diagnostics-tools.md).
+
+### Fixed
+
+- Reward-noise draws larger than the internal block are sampled at the requested length instead
+  of being truncated.
+- Whole-number floats and booleans are rejected where an integer count, seed, or modulation lag
+  is required.
+- A multiplier that returns the TD-error array itself is copied before the in-place update, so
+  the scale is applied once. Multipliers with the wrong length or a non-finite value are rejected
+  instead of being broadcast into the Q update.
+- `run_comparison` raises `ValueError` for an unknown policy name, matching paired comparison.
+
+### Changed
+
+- Raised install floors for the supported Python 3.10–3.14 range: NumPy 2.2.6, Matplotlib 3.10,
+  pytest 9, pytest-cov 7, Ruff 0.17, build 1.6, Twine 7, pre-commit 4.6, and setuptools 80.
+  Newer interpreters still resolve newer releases when those releases support them.
+- Pinned CI to `actions/setup-python` v7.1.0 and the Ruff pre-commit hook to v0.17.1.
 
 ## [0.2.0] - 2026-08-16
 
